@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   microshell.c                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: artmende <artmende@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/03 14:44:45 by artmende          #+#    #+#             */
-/*   Updated: 2022/01/04 16:16:19 by artmende         ###   ########.fr       */
+/*   Updated: 2022/01/04 18:57:21 by artmende         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,12 +102,12 @@ void	execute_cmd(char **arg_array, char **env)
 	pid_t	pid;
 	int		index_to = 0;
 	char	**pipe_section;
-	int		fd[2];
-	int		oldfdin = STDIN_FILENO;
+	int		fd[2]; // fd[0] is read. fd[1] is write.
+	int		oldfdin = 0;
 
 	while ((pipe_section = get_next_pipe_args(&index_to, arg_array)))
 	{
-		if (arg_array[index_to])
+		if (arg_array[index_to]) // true for all commands except the last one
 		{
 			if (pipe(fd) == -1)
 				call_exit();
@@ -118,9 +118,15 @@ void	execute_cmd(char **arg_array, char **env)
 		if (pid == 0)
 		{
 			if (arg_array[index_to])
-				dup2(fd[1], STDOUT_FILENO);
-			if (oldfdin)
-				dup2(oldfdin, STDIN_FILENO);
+			{
+				if (-1 == dup2(fd[1], STDOUT_FILENO))
+					call_exit();
+			}
+			if (oldfdin) // no need to modify the stdin for the first command
+			{
+				if (-1 == dup2(oldfdin, STDIN_FILENO))
+					call_exit();
+			}
 			execve(pipe_section[0], pipe_section, env);
 			write(STDERR_FILENO, "error: cannot execute ", 22);
 			write(STDERR_FILENO, pipe_section[0], ft_strlen(pipe_section[0]));
@@ -128,8 +134,10 @@ void	execute_cmd(char **arg_array, char **env)
 			exit(EXIT_FAILURE);
 		}
 		waitpid(pid, 0, 0);
+		if (oldfdin != 0) // do not close stdin
+			close(oldfdin); // Closing the read end of the pipe from the previous cycle
 		oldfdin = fd[0];
-		close(fd[1]); /////////////
+		close(fd[1]); // sending EOF to the next process
 		free(pipe_section);
 	}
 }
@@ -143,7 +151,6 @@ void	execute_cd(char **arg_array, char **env)
 	else if (arg_array[2])
 	{
 		write(STDERR_FILENO, "error: cd: bad arguments\n", 25);
-		exit(EXIT_FAILURE);
 	}
 	else
 	{
@@ -152,7 +159,6 @@ void	execute_cd(char **arg_array, char **env)
 			write(STDERR_FILENO, "error: cd: cannot change directory to ", 38);
 			write(STDERR_FILENO, arg_array[1], ft_strlen(arg_array[1]));
 			write(STDERR_FILENO, "\n", 1);
-			exit(EXIT_FAILURE);
 		}
 	}
 }
