@@ -6,7 +6,7 @@
 /*   By: artmende <artmende@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/03 14:44:45 by artmende          #+#    #+#             */
-/*   Updated: 2022/01/04 15:44:33 by artmende         ###   ########.fr       */
+/*   Updated: 2022/01/04 16:16:19 by artmende         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ char	**get_next_pipe_args(int *index_to, char **arg_array)
 
 	if (arg_array[*index_to] == NULL)
 		return (NULL);
-	while (arg_array[*index_to] && strncmp(arg_array[*index_to], "|", ft_strlen(arg_array[*index_to])))
+	while (arg_array[*index_to] && strcmp(arg_array[*index_to], "|"))
 		*index_to = *index_to + 1;
 	ret = duplicate_array_from_index(arg_array, index_from, *index_to - 1);
 	if (arg_array[*index_to]) // if we finished on a pipe
@@ -87,7 +87,7 @@ char	**get_arg_array(char **argv, int *argv_index)
 {
 	char	**ret = NULL;
 
-	while (argv[*argv_index] && strncmp(";", argv[*argv_index], ft_strlen(argv[*argv_index])))
+	while (argv[*argv_index] && strcmp(";", argv[*argv_index]))
 	{
 		ret = add_str_to_array(ret, argv[*argv_index]);
 		*argv_index = *argv_index + 1;
@@ -136,7 +136,25 @@ void	execute_cmd(char **arg_array, char **env)
 
 void	execute_cd(char **arg_array, char **env)
 {
-	
+	if (arg_array[1] == NULL)
+	{
+		return ;
+	}
+	else if (arg_array[2])
+	{
+		write(STDERR_FILENO, "error: cd: bad arguments\n", 25);
+		exit(EXIT_FAILURE);
+	}
+	else
+	{
+		if (-1 == chdir(arg_array[1]))
+		{
+			write(STDERR_FILENO, "error: cd: cannot change directory to ", 38);
+			write(STDERR_FILENO, arg_array[1], ft_strlen(arg_array[1]));
+			write(STDERR_FILENO, "\n", 1);
+			exit(EXIT_FAILURE);
+		}
+	}
 }
 
 int	main(int argc, char **argv, char **env)
@@ -149,7 +167,7 @@ int	main(int argc, char **argv, char **env)
 		arg_array = get_arg_array(argv, &argv_index);
 		if (arg_array == NULL)
 			continue ;
-		if (0 == strncmp("cd", arg_array[0], ft_strlen(arg_array[0])))
+		if (0 == strcmp("cd", arg_array[0]))
 		{
 			execute_cd(arg_array, env);
 			free(arg_array);
@@ -158,8 +176,5 @@ int	main(int argc, char **argv, char **env)
 		execute_cmd(arg_array, env);
 		free(arg_array);
 	}
-
-
-
 	return (0);
 }
