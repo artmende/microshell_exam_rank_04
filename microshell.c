@@ -6,7 +6,7 @@
 /*   By: artmende <artmende@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/03 14:44:45 by artmende          #+#    #+#             */
-/*   Updated: 2022/01/05 15:03:56 by artmende         ###   ########.fr       */
+/*   Updated: 2022/01/05 15:24:07 by artmende         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ void	execute_cd(char **semicolon_args)
 {
 	if (semicolon_args[1] == NULL)
 	{
-		return ;
+		write(STDERR_FILENO, "error: cd: bad arguments\n", 25);
 	}
 	else if (semicolon_args[2])
 	{
