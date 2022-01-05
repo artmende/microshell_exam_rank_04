@@ -6,7 +6,7 @@
 /*   By: artmende <artmende@student.s19.be>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/01/03 14:44:45 by artmende          #+#    #+#             */
-/*   Updated: 2022/01/04 18:57:21 by artmende         ###   ########.fr       */
+/*   Updated: 2022/01/05 11:05:31 by artmende         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,13 +165,13 @@ void	execute_cd(char **arg_array, char **env)
 
 int	main(int argc, char **argv, char **env)
 {
-	int		argv_index = 1;
+	int		argv_index = 1; // 0 is microshell
 	char	**arg_array;
 
 	while (argv_index < argc) // argv[argc] is always NULL
 	{
 		arg_array = get_arg_array(argv, &argv_index);
-		if (arg_array == NULL)
+		if (arg_array == NULL) // in cases like that --> ; ;
 			continue ;
 		if (0 == strcmp("cd", arg_array[0]))
 		{
